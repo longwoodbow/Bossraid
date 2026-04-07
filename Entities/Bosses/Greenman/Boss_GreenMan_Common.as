@@ -15,12 +15,20 @@ namespace GreenManStates
 namespace GreenManVars
 {
 	const ::f32 chasing_force = 3.0f;
+
+	const ::s32 punch_charge_time = 20;
+	const ::s32 punch_time = 20;
 	const ::f32 punch_damage = 3.0f;
 	const ::f32 punch_arc = 90.0f;
 	const ::f32 punch_length = 32.0f;
+
+	const ::s32 throw_charge_time = 40;
+	const ::s32 throw_time = 20;
 	const ::s32 throw_amount = 5;
 	const ::f32 throw_deviation = 2.5f;
 	const ::f32 throw_velocity = 17.59f;
+
+	const ::s32 jump_stomp = 30;
 	const ::f32 jumping_damage = 3.0f;
 	const ::f32 jumping_force = 10.0f;
 }

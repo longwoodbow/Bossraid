@@ -166,7 +166,7 @@ void onTick(CBlob@ this)
 				this.SetFacingLeft(dif.x < 0);
 			}
 
-			if (actionTimer >= 30)
+			if (actionTimer >= GreenManVars::punch_charge_time)
 			{
 				greenman_clear_actor_limits(this);
 				//sound
@@ -182,14 +182,14 @@ void onTick(CBlob@ this)
 
 		case GreenManStates::punched:
 		{
-			if (actionTimer < 10)
-			{
-				Punch(this);
-			}
-			else if (actionTimer >= 30)
+			if (actionTimer >= GreenManVars::punch_time)
 			{
 				actionTimer = 0;
 				state = GreenManStates::normal;
+			}
+			else if (actionTimer < 10)
+			{
+				Punch(this);
 			}
 		}
 		break;
@@ -204,7 +204,7 @@ void onTick(CBlob@ this)
 				Vec2f dif = this.getPosition() - targetBlob.getPosition();
 				this.SetFacingLeft(dif.x < 0);
 			}
-			if (actionTimer >= 60)
+			if (actionTimer >= GreenManVars::throw_charge_time)
 			{
 				//set state
 				actionTimer = 0;
@@ -240,7 +240,7 @@ void onTick(CBlob@ this)
 
 		case GreenManStates::throwed:
 		{
-			if (actionTimer >= 30)
+			if (actionTimer >= GreenManVars::throw_time)
 			{
 				actionTimer = 0;
 				state = GreenManStates::normal;
@@ -255,11 +255,11 @@ void onTick(CBlob@ this)
 
 			if (falling)
 			{
-				if (actionTimer >= 30)
+				if (actionTimer >= GreenManVars::jump_stomp)
 				{
 					state = GreenManStates::normal;
 				}
-				else if (actionTimer <= 1 && velocity.y <= 0)
+				else if (actionTimer <= 1 && velocity.y > 0)
 				{
 					actionTimer = 0;
 				}
