@@ -258,6 +258,7 @@ void onTick(CBlob@ this)
 				if (actionTimer >= GreenManVars::jump_stomp)
 				{
 					state = GreenManStates::normal;
+					actionTimer = 0;
 				}
 				else if (actionTimer <= 1 && velocity.y > 0)
 				{
