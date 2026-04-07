@@ -329,6 +329,48 @@ void onCommand(CBlob@ this, u8 cmd, CBitStream @params)
 	}
 }
 
+void onCollision(CBlob@ this, CBlob@ blob, bool solid)// from Stomp.as
+{
+	if (blob is null)   // map collision?
+	{
+		return;
+	}
+
+	if (!solid)
+	{
+		return;
+	}
+
+	//dead bodies dont stomp
+	if (this.hasTag("dead"))
+	{
+		return;
+	}
+
+	// server only
+	if (!getNet().isServer() || !blob.hasTag("player")) { return; }
+
+	if (this.getPosition().y < blob.getPosition().y - 2)
+	{
+		float enemydam = 0.0f;
+		f32 vely = this.getOldVelocity().y;
+
+		if (vely > 10.0f)
+		{
+			enemydam = 2.0f;
+		}
+		else if (vely > 5.5f)
+		{
+			enemydam = 1.0f;
+		}
+
+		if (enemydam > 0)
+		{
+			this.server_Hit(blob, this.getPosition(), Vec2f(0, 1) , GreenManVars::jumping_damage, Hitters::stomp);
+		}
+	}
+}
+
 CBlob@ findTarget(CBlob@ this)
 {
 	CBlob@[] players;
