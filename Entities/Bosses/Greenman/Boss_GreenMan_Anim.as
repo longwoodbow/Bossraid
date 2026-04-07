@@ -10,6 +10,15 @@ void onTick(CSprite@ this)
 {
 	CBlob@ blob = this.getBlob();
 
+	if (blob.hasTag("dead"))
+	{
+		if (this.animation.name != "dead")
+		{
+			this.SetAnimation("dead");
+		}
+		return;
+	}
+
 	GreenManInfo@ greenman;
 	if (!blob.get("greenManInfo", @greenman))
 	{

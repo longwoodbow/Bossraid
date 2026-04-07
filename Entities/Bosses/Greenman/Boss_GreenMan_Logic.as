@@ -48,6 +48,8 @@ void onInit(CBlob@ this)
 
 void onTick(CBlob@ this)
 {
+	if (this.hasTag("dead")) return;
+
 	GreenManInfo@ greenman;
 	if (!this.get("greenManInfo", @greenman))
 	{
@@ -327,6 +329,95 @@ void onCommand(CBlob@ this, u8 cmd, CBitStream @params)
 			break;
 		}
 	}
+}
+
+f32 onHit(CBlob@ this, Vec2f worldPoint, Vec2f velocity, f32 damage, CBlob@ hitterBlob, u8 customData)
+{
+	if (damage > 0.05f) //sound for all damage
+	{
+		//read customdata for hitter
+		switch (customData)
+		{
+			case 0: //in case we want more cases
+			default:
+				if (hitterBlob !is this)
+				{
+					Sound::Play("/cut_grass", this.getPosition());
+				}
+
+				for (int i = 0; i < (damage + 1); ++i)
+				{
+					makeGibParticle("GenericGibs",
+					                this.getPosition(), getRandomVelocity(-90, (Maths::Min(Maths::Max(0.5f, damage), 2.0f) * 4.0f) , 270),
+					                7, 3 + XORRandom(4), Vec2f(8, 8),
+					                1.0f, 0, "", 0);
+				}
+
+				break;
+		}
+	}
+
+	this.Damage(damage, hitterBlob);
+	// Gib if health below gibHealth
+	f32 gibHealth = -3.0f;
+
+	//printf("ON HIT " + damage + " he " + this.getHealth() + " g " + gibHealth );
+	// blob server_Die()() and then gib
+
+
+	//printf("gibHealth " + gibHealth + " health " + this.getHealth() );
+	if (this.getHealth() <= gibHealth)
+	{
+		this.getSprite().Gib();
+		this.server_Die();
+	}
+	if (this.getHealth() <= 0.0f && !this.hasTag("dead"))
+	{
+		this.Tag("dead");
+
+		this.UnsetMinimapVars(); //remove minimap icon
+
+		// we want the corpse to stay but player to respawn so we force a die event in rules
+
+		if (getNet().isServer())
+		{
+			getRules().server_BlobDie(this);
+		}
+
+		// sound
+
+		if (this.getSprite() !is null) //moved here to prevent other logic potentially not getting run
+		{
+			if (this !is hitterBlob)
+			{
+				if (this.getHealth() > gibHealth / 2.0f)
+				{
+					this.getSprite().PlaySound("WilhelmShort.ogg", this.getSexNum() == 0 ? 1.0f : 1.5f);
+				}
+				else if (this.getHealth() > gibHealth)
+				{
+					this.getSprite().PlaySound("Wilhelm.ogg", 1.0f, this.getSexNum() == 0 ? 1.0f : 1.5f);
+				}
+			}
+		}
+
+		this.getCurrentScript().tickFrequency = 30;
+
+		// new physics vars so bodies don't slide
+		this.getShape().setFriction(0.75f);
+		this.getShape().setElasticity(0.2f);
+
+		// disable tags
+		this.Untag("boss");
+		this.getShape().getVars().isladder = false;
+		this.getShape().getVars().onladder = false;
+		this.getShape().checkCollisionsAgain = true;
+		this.getShape().SetGravityScale(1.0f);
+        // fall out of attachments/seats // drop all held things
+		this.server_DetachAll();
+	}
+
+	return 0.0f; //done, we've used all the damage
 }
 
 void onCollision(CBlob@ this, CBlob@ blob, bool solid)// from Stomp.as
