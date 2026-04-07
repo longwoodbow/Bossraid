@@ -221,7 +221,7 @@ void onTick(CBlob@ this)
 					int r = 0;
 					for (int i = 0; i < GreenManVars::throw_amount; i++)
 					{
-						CBlob@ ball = server_CreateBlob("arrow");
+						CBlob@ ball = server_CreateBlob("boss_greenman_ball");
 						ball.IgnoreCollisionWhileOverlapped(this);
 						ball.server_setTeamNum(this.getTeamNum());
 						ball.setPosition(this.getPosition());
