@@ -105,8 +105,9 @@ void onTick(CBlob@ this)
 
 						//jump
 						Vec2f jumpForce = Vec2f(0.0f, -GreenManVars::jumping_force);
+						jumpForce.RotateBy(-10.0f + 20.0f * (XORRandom(256) / 255.0f));
 						//rotate direction to target(todo)
-						//Gingerbread please
+						//Gingerbeard please
 
 						this.setVelocity(jumpForce);
 
@@ -215,7 +216,7 @@ void onTick(CBlob@ this)
 				//throw
 				if (isServer())
 				{
-					//calculate direction(Gingerbread please)
+					//calculate direction(Gingerbeard please)
 
 					//shoot
 					int r = 0;
