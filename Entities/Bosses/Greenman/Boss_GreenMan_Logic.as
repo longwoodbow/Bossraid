@@ -130,7 +130,7 @@ void onTick(CBlob@ this)
 		case GreenManStates::chasing:
 		{
 			CBlob@ targetBlob = getBlobByNetworkID(greenman.targetID);
-			if (targetBlob is null)
+			if (targetBlob is null || actionTimer >= GreenManVars::chasing_time)
 			{
 				state = GreenManStates::normal;
 				break;

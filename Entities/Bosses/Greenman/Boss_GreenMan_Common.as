@@ -15,6 +15,7 @@ namespace GreenManStates
 namespace GreenManVars
 {
 	const ::f32 chasing_force = 3.0f;
+	const ::s32 chasing_time = 255;
 
 	const ::s32 punch_charge_time = 10;
 	const ::s32 punch_time = 20;
