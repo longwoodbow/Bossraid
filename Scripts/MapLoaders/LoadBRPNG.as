@@ -10,7 +10,8 @@ namespace tdm_colors
 	{
 		tradingpost_1 = 0xFF8888FF,
 		tradingpost_2 = 0xFFFF8888,
-		boss_greenman = 0xFFFFFFFF
+		boss_greenman = 0xFFFFFFFF,
+		boss_explosionman = 0xFFFFFFFE
 	};
 }
 
@@ -33,6 +34,7 @@ class TDMPNGLoader : PNGLoader
 		case tdm_colors::tradingpost_1: autotile(offset); spawnBlob(map, "tradingpost", offset, 0); break;
 		case tdm_colors::tradingpost_2: autotile(offset); spawnBlob(map, "tradingpost", offset, 1); break;
 		case tdm_colors::boss_greenman: autotile(offset); spawnBlob(map, "boss_greenman", offset, 1); break;
+		case tdm_colors::boss_explosionman: autotile(offset); spawnBlob(map, "boss_explosionman", offset, 1); break;
 		};
 	}
 };

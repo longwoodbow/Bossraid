@@ -45,7 +45,6 @@ void onInit(CBlob@ this)
 	this.set("greenManInfo", @greenman);
 }
 
-
 void onTick(CBlob@ this)
 {
 	if (this.hasTag("dead")) return;
@@ -216,8 +215,6 @@ void onTick(CBlob@ this)
 				//throw
 				if (isServer())
 				{
-					//calculate direction(Gingerbeard please)
-
 					//shoot
 					int r = 0;
 					for (int i = 0; i < GreenManVars::throw_amount; i++)
@@ -230,7 +227,8 @@ void onTick(CBlob@ this)
 						r = r > 0 ? -(r + 1) : (-r) + 1;
 
 						Vec2f ballVel = Vec2f(GreenManVars::throw_velocity, 0.0f);
-						if (!this.isFacingLeft()) ballVel.RotateBy(180.0f, Vec2f());//change here when calculate direction
+						if (targetBlob !is null) ballVel.RotateBy(-(targetBlob.getPosition() - this.getPosition()).Angle());
+						else if (!this.isFacingLeft()) ballVel.RotateBy(180.0f, Vec2f());
 						ballVel = ballVel.RotateBy(GreenManVars::throw_deviation * r, Vec2f());
 						ball.setVelocity(ballVel);
 					}
@@ -496,7 +494,18 @@ void Punch(CBlob@ this)
 	CMap@ map = this.getMap();
 	Vec2f pos = this.getPosition();
 	HitInfo@[] hitInfos;
-	if (map.getHitInfosFromArc(pos, (this.isFacingLeft() ? 0.0f : 180.0f), GreenManVars::punch_arc, radius + GreenManVars::punch_length, this, @hitInfos))
+
+	f32 angle = this.isFacingLeft() ? 0.0f : 180.0f;
+
+	//find target
+	CBlob@ targetBlob = findTarget(this);
+
+	if (targetBlob !is null)
+	{
+		angle = -(targetBlob.getPosition() - this.getPosition()).Angle();
+	}
+
+	if (map.getHitInfosFromArc(pos, angle, GreenManVars::punch_arc, radius + GreenManVars::punch_length, this, @hitInfos))
 	{
 		for (int i = 0; i < hitInfos.size(); i++)
 		{

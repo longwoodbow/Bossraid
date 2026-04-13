@@ -1,5 +1,5 @@
 #define CLIENT_ONLY
-#include "Boss_GreenMan_Common.as";
+#include "Boss_ExplosionMan_Common.as";
 
 void onTick(CSprite@ this)
 {
@@ -14,24 +14,24 @@ void onTick(CSprite@ this)
 		return;
 	}
 
-	GreenManInfo@ greenman;
-	if (!blob.get("greenManInfo", @greenman))
+	ExplosionManInfo@ explosionman;
+	if (!blob.get("explosionManInfo", @explosionman))
 	{
 		return;
 	}
 
-	u8 state = greenman.state;
-	u16 actionTimer = greenman.actionTimer;
+	u8 state = explosionman.state;
+	u16 actionTimer = explosionman.actionTimer;
 
 	switch (state)
 	{
-		case GreenManStates::normal:
+		case ExplosionManStates::normal:
 		{
 			this.SetAnimation("default");
 		}
 		break;
 
-		case GreenManStates::chasing:
+		case ExplosionManStates::chasing:
 		{
 			this.SetAnimation("run");
 			if (blob.isOnGround() && (blob.getNetworkID() + getGameTime()) % 8 == 0)
@@ -58,16 +58,50 @@ void onTick(CSprite@ this)
 		}		
 		break;
 
-		case GreenManStates::punching:
+		case ExplosionManStates::clustercharging:
 		{
-			this.SetAnimation("punch");
+			this.SetAnimation("cluster");
 			this.animation.SetFrameIndex(0);
 		}
 		break;
 
-		case GreenManStates::punched:
+		case ExplosionManStates::cluster:
 		{
-			this.SetAnimation("punch");
+			this.SetAnimation("cluster");
+			this.animation.SetFrameIndex(1);
+		}
+		break;
+
+		case ExplosionManStates::suiciding:
+		{
+			this.SetAnimation("suicide");
+			this.animation.SetFrameIndex(0);
+		}
+		break;
+
+		case ExplosionManStates::suicide:
+		{
+			this.SetAnimation("suicide");
+			this.animation.SetFrameIndex(1);
+		}
+		break;
+
+		case ExplosionManStates::bombrain:
+		{
+			this.SetAnimation("bombrain");
+		}
+		break;
+
+		case ExplosionManStates::throwingkeg:
+		{
+			this.SetAnimation("throwkeg");
+			this.animation.SetFrameIndex(0);
+		}
+		break;
+
+		case ExplosionManStates::throwedkeg:
+		{
+			this.SetAnimation("throwkeg");
 
 			if (actionTimer < 10)
 			{
@@ -80,40 +114,9 @@ void onTick(CSprite@ this)
 		}
 		break;
 
-		case GreenManStates::throwing:
+		case ExplosionManStates::minerain:
 		{
-			this.SetAnimation("throw");
-			this.animation.SetFrameIndex(0);
-		}
-		break;
-
-		case GreenManStates::throwed:
-		{
-			this.SetAnimation("throw");
-
-			if (actionTimer < 10)
-			{
-				this.animation.SetFrameIndex(1);
-			}
-			else
-			{
-				this.animation.SetFrameIndex(2);
-			}
-		}
-		break;
-
-		case GreenManStates::jumping:
-		{
-			this.SetAnimation("jump");
-
-			if (greenman.falling)
-			{
-				this.animation.SetFrameIndex(1);
-			}
-			else
-			{
-				this.animation.SetFrameIndex(0);
-			}
+			this.SetAnimation("minerain");
 		}
 		break;
 	}
