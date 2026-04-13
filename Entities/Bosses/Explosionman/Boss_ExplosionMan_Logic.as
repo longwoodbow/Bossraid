@@ -180,17 +180,23 @@ void onTick(CBlob@ this)
 
 			if (actionTimer >= ExplosionManVars::cluster_charge_time)
 			{
-				//make line
-				f32 angle = (targetBlob.getPosition() - this.getPosition()).Angle();
+				//set state
+				actionTimer = 0;
+				state = ExplosionManStates::cluster;
 
-				CBlob@ cluster = server_CreateBlob("boss_explosionman_cluster");
-				cluster.server_setTeamNum(this.getTeamNum());
-				cluster.setPosition(this.getPosition() + Vec2f(ExplosionManVars::cluster_length, 0.0f).RotateBy(-angle));
-				cluster.server_Die();
-
-				explosionman.clusterTimer = ExplosionManVars::cluster_delay * (ExplosionManVars::cluster_amount - 1);
-				explosionman.cluster_angle = angle;
-				explosionman.cluster_pos = this.getPosition();
+				if (isServer())
+				{
+					//make line
+					f32 angle = this.isFacingLeft() ? 180.0f : 0.0f;
+					if (targetBlob !is null) angle = (targetBlob.getPosition() - this.getPosition()).Angle();
+					CBlob@ cluster = server_CreateBlob("boss_explosionman_cluster");
+					cluster.server_setTeamNum(this.getTeamNum());
+					cluster.setPosition(this.getPosition() + Vec2f(ExplosionManVars::cluster_length, 0.0f).RotateBy(-angle));
+					cluster.server_Die();
+					explosionman.clusterTimer = ExplosionManVars::cluster_delay * (ExplosionManVars::cluster_amount - 1);
+					explosionman.cluster_angle = angle;
+					explosionman.cluster_pos = this.getPosition();
+				}
 
 				if (!isClient())//not localhost
 				{
@@ -199,9 +205,6 @@ void onTick(CBlob@ this)
 					params.write_netid(-1);
 					this.SendCommand(this.getCommandID("action sync"), params);
 				}
-				//set state
-				actionTimer = 0;
-				state = ExplosionManStates::cluster;
 			}
 		}
 		break;
