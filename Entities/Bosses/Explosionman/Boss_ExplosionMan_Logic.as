@@ -190,7 +190,7 @@ void onTick(CBlob@ this)
 
 			bool clusterTime = actionTimer >= ExplosionManVars::cluster_charge_time;
 
-			for (int i = 0; i < ExplosionManVars::cluster_amount; i++)
+			for (int i = 0; i < explosionman.clusterHolder.size(); i++)
 			{
 				CBlob@ cluster = @explosionman.clusterHolder[i];
 				if (cluster !is null)
