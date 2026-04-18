@@ -27,7 +27,6 @@ void onInit(CBlob@ this)
 
 	explosionman.state = ExplosionManStates::normal;
 	explosionman.actionTimer = 0;
-	explosionman.clusterTimer = 0;
 
 	this.set("explosionManInfo", @explosionman);
 }
@@ -41,19 +40,6 @@ void onTick(CBlob@ this)
 	{
 		return;
 	}
-
-	//cluster
-	u16 clusterTimer = explosionman.clusterTimer;
-	if (clusterTimer % ExplosionManVars::cluster_delay == 1)
-	{
-		u8 amount = ExplosionManVars::cluster_amount - clusterTimer / ExplosionManVars::cluster_delay;
-		CBlob@ cluster = server_CreateBlob("boss_explosionman_cluster");
-		cluster.server_setTeamNum(this.getTeamNum());
-		cluster.setPosition(explosionman.cluster_pos + Vec2f(ExplosionManVars::cluster_length * amount, 0.0f).RotateBy(-explosionman.cluster_angle));
-		cluster.server_Die();
-	}
-
-	if (clusterTimer > 0) explosionman.clusterTimer--;
 
 	u8 state = explosionman.state;
 	u16 actionTimer = explosionman.actionTimer;
@@ -76,7 +62,7 @@ void onTick(CBlob@ this)
 
 						//find target
 						CBlob@ targetBlob = findTarget(this);
-						if (targetBlob is null || clusterTimer > 0)
+						if (targetBlob is null)
 						{
 							state = ExplosionManStates::normal;
 						}
@@ -102,8 +88,11 @@ void onTick(CBlob@ this)
 						if (targetBlob !is null)
 						{
 							CBlob@ bomb = server_CreateBlob("bomb");
-							bomb.server_setTeamNum(this.getTeamNum());
-							bomb.setPosition(Vec2f(targetBlob.getPosition().x, 0.0f));
+							if (bomb !is null)
+							{
+								bomb.server_setTeamNum(this.getTeamNum());
+								bomb.setPosition(Vec2f(targetBlob.getPosition().x, 0.0f));
+							}
 						}
 					}
 					break;
@@ -120,10 +109,13 @@ void onTick(CBlob@ this)
 
 						for (int i = 0; i < ExplosionManVars::mine_amount; i++)
 						{
-							CBlob@ ball = server_CreateBlob("mine");
-							ball.server_setTeamNum(this.getTeamNum());
-							CMap@ map = getMap();
-							ball.setPosition(Vec2f(map.tilemapwidth * map.tilesize / 255 * XORRandom(256),  0.0f));
+							CBlob@ mine = server_CreateBlob("mine");
+							if (mine !is null)
+							{
+								mine.server_setTeamNum(this.getTeamNum());
+								CMap@ map = getMap();
+								mine.setPosition(Vec2f(map.tilemapwidth * map.tilesize / 255 * XORRandom(256),  0.0f));
+							}
 						}
 					}
 					break;
@@ -158,6 +150,21 @@ void onTick(CBlob@ this)
 				actionTimer = 0;
 				state = ExplosionManStates::clustercharging;
 
+				if (isServer())
+				{
+					for (int i = 0; i < ExplosionManVars::cluster_amount; i++)
+					{
+						CBlob@ cluster = server_CreateBlob("boss_explosionman_cluster");
+						if (cluster !is null)
+						{
+							cluster.server_setTeamNum(this.getTeamNum());
+							cluster.set_s16("cluster_timer", -1);
+							cluster.set_s16("cluster_time", ExplosionManVars::cluster_delay * i);
+							explosionman.clusterHolder.push_back(@cluster);
+						}
+					}
+				}
+
 				if (!isClient())//not localhost
 				{
 					CBitStream params;
@@ -171,32 +178,33 @@ void onTick(CBlob@ this)
 
 		case ExplosionManStates::clustercharging:
 		{
+			f32 angle = this.isFacingLeft() ? 180.0f : 0.0f;
+
 			CBlob@ targetBlob = getBlobByNetworkID(explosionman.targetID);
 			if (targetBlob !is null)
 			{
 				Vec2f dif = this.getPosition() - targetBlob.getPosition();
 				this.SetFacingLeft(dif.x > 0);
+				angle = (targetBlob.getPosition() - this.getPosition()).Angle();
 			}
 
-			if (actionTimer >= ExplosionManVars::cluster_charge_time)
+			bool clusterTime = actionTimer >= ExplosionManVars::cluster_charge_time;
+
+			for (int i = 0; i < ExplosionManVars::cluster_amount; i++)
+			{
+				CBlob@ cluster = @explosionman.clusterHolder[i];
+				if (cluster !is null)
+				{
+					cluster.setPosition(this.getPosition() + Vec2f(ExplosionManVars::cluster_length * (i + 1), 0.0f).RotateBy(-angle));
+					if (clusterTime) cluster.set_s16("cluster_timer", 0);
+				}
+			}
+
+			if (clusterTime)
 			{
 				//set state
 				actionTimer = 0;
 				state = ExplosionManStates::cluster;
-
-				if (isServer())
-				{
-					//make line
-					f32 angle = this.isFacingLeft() ? 180.0f : 0.0f;
-					if (targetBlob !is null) angle = (targetBlob.getPosition() - this.getPosition()).Angle();
-					CBlob@ cluster = server_CreateBlob("boss_explosionman_cluster");
-					cluster.server_setTeamNum(this.getTeamNum());
-					cluster.setPosition(this.getPosition() + Vec2f(ExplosionManVars::cluster_length, 0.0f).RotateBy(-angle));
-					cluster.server_Die();
-					explosionman.clusterTimer = ExplosionManVars::cluster_delay * (ExplosionManVars::cluster_amount - 1);
-					explosionman.cluster_angle = angle;
-					explosionman.cluster_pos = this.getPosition();
-				}
 
 				if (!isClient())//not localhost
 				{
@@ -277,14 +285,17 @@ void onTick(CBlob@ this)
 
 					//shoot
 					CBlob@ keg = server_CreateBlob("keg");
-					keg.IgnoreCollisionWhileOverlapped(this);
-					keg.server_setTeamNum(this.getTeamNum());
-					keg.setPosition(this.getPosition());
-					server_Activate(keg);
-
-					Vec2f kegVel = Vec2f(ExplosionManVars::throw_keg_velocity, 0.0f);
-					kegVel.RotateBy(this.isFacingLeft() ? -100.0f : -80.0f, Vec2f());//change here when calculate direction
-					keg.setVelocity(kegVel);
+					if (keg !is null)
+					{
+						keg.IgnoreCollisionWhileOverlapped(this);
+						keg.server_setTeamNum(this.getTeamNum());
+						keg.setPosition(this.getPosition());
+						server_Activate(keg);
+					
+						Vec2f kegVel = Vec2f(ExplosionManVars::throw_keg_velocity, 0.0f);
+						kegVel.RotateBy(this.isFacingLeft() ? -100.0f : -80.0f, Vec2f());//change here when calculate direction
+						keg.setVelocity(kegVel);
+					}
 				}
 			}
 		}

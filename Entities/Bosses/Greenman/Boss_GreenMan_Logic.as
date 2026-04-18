@@ -220,17 +220,20 @@ void onTick(CBlob@ this)
 					for (int i = 0; i < GreenManVars::throw_amount; i++)
 					{
 						CBlob@ ball = server_CreateBlob("boss_greenman_ball");
-						ball.IgnoreCollisionWhileOverlapped(this);
-						ball.server_setTeamNum(this.getTeamNum());
-						ball.setPosition(this.getPosition());
-
-						r = r > 0 ? -(r + 1) : (-r) + 1;
-
-						Vec2f ballVel = Vec2f(GreenManVars::throw_velocity, 0.0f);
-						if (targetBlob !is null) ballVel.RotateBy(-(targetBlob.getPosition() - this.getPosition()).Angle());
-						else if (!this.isFacingLeft()) ballVel.RotateBy(180.0f, Vec2f());
-						ballVel = ballVel.RotateBy(GreenManVars::throw_deviation * r, Vec2f());
-						ball.setVelocity(ballVel);
+						if (ball !is null)
+						{
+							ball.IgnoreCollisionWhileOverlapped(this);
+							ball.server_setTeamNum(this.getTeamNum());
+							ball.setPosition(this.getPosition());
+						
+							r = r > 0 ? -(r + 1) : (-r) + 1;
+						
+							Vec2f ballVel = Vec2f(GreenManVars::throw_velocity, 0.0f);
+							if (targetBlob !is null) ballVel.RotateBy(-(targetBlob.getPosition() - this.getPosition()).Angle());
+							else if (!this.isFacingLeft()) ballVel.RotateBy(180.0f, Vec2f());
+							ballVel = ballVel.RotateBy(GreenManVars::throw_deviation * r, Vec2f());
+							ball.setVelocity(ballVel);
+						}
 					}
 				}
 			}

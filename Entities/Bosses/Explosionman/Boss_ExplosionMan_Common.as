@@ -46,8 +46,6 @@ shared class ExplosionManInfo
 {
 	u8 state;
 	u16 actionTimer;
-	u16 clusterTimer;
-	f32 cluster_angle;
-	Vec2f cluster_pos;
 	u16 targetID = -1;
+	CBlob@[] clusterHolder;
 };
