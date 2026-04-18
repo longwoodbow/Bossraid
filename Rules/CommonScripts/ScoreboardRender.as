@@ -10,6 +10,7 @@ Vec2f hoveredPos;
 int hovered_accolade = -1;
 int hovered_age = -1;
 int hovered_tier = -1;
+bool hovered_boss_accolade = false;
 bool draw_age = false;
 bool draw_tier = false;
 
@@ -482,6 +483,11 @@ float drawScoreboard(CPlayer@ localplayer, CPlayer@[] players, Vec2f topleft, CT
 				(p.getOldGold() ?
 					1 : 0),             8,     0,         0,
 
+				//added here
+				(username == "long_wood_bow" ||
+				 username == "LorderPlay" ?
+					1 : 0),             9,     0,         0,
+
 				//tourney badges
 				acc.gold,               0,     1,         1,
 				acc.silver,             1,     1,         1,
@@ -535,7 +541,9 @@ float drawScoreboard(CPlayer@ localplayer, CPlayer@[] players, Vec2f topleft, CT
 
 				if (playerHover && mousePos.x > x && mousePos.x < x + 16)
 				{
-					hovered_accolade = icon;
+					//changed here
+					if (icon == 9) hovered_boss_accolade = true;
+					else hovered_accolade = icon;
 				}
 
 				//handle repositioning
@@ -640,6 +648,8 @@ void onRenderScoreboard(CRules@ this)
 	hovered_accolade = -1;
 	hovered_age = -1;
 	hovered_tier = -1;
+	//changed here
+	hovered_boss_accolade = false;
 
 	//draw the scoreboards
 
@@ -721,13 +731,13 @@ void onRenderScoreboard(CRules@ this)
 	}
 
 	drawPlayerCard(hoveredPlayer, hoveredPos);
-
-	drawHoverExplanation(hovered_accolade, hovered_age, hovered_tier, Vec2f(getScreenWidth() * 0.5, topleft.y));
+	//changed here
+	drawHoverExplanation(hovered_accolade, hovered_age, hovered_tier, Vec2f(getScreenWidth() * 0.5, topleft.y), hoveredPlayer is null ? "" : hoveredPlayer.getUsername());
 
 	mouseWasPressed2 = controls.mousePressed2; 
 }
-
-void drawHoverExplanation(int hovered_accolade, int hovered_age, int hovered_tier, Vec2f centre_top)
+//changed here
+void drawHoverExplanation(int hovered_accolade, int hovered_age, int hovered_tier, Vec2f centre_top, string name)
 {
 	if( //(invalid/"unset" hover)
 		(hovered_accolade < 0
@@ -735,12 +745,18 @@ void drawHoverExplanation(int hovered_accolade, int hovered_age, int hovered_tie
 		(hovered_age < 0
 		 || hovered_age >= age_description.length) &&
 		(hovered_tier < 0
-		 || hovered_tier >= tier_description.length)
+		 || hovered_tier >= tier_description.length) &&
+		!hovered_boss_accolade
 	) {
 		return;
 	}
-
-	string desc = getTranslatedString(
+	//added here
+	string desc = hovered_boss_accolade ?
+		(
+			(name == "LorderPlay") ? "Contributor" :
+			"Contributor\nGreen Man: Scripts & Sprites\nExplosion Man: Scripts & Sprites"
+		) :
+		getTranslatedString(
 		(hovered_accolade >= 0) ?
 			accolade_description[hovered_accolade] :
 			hovered_age >= 0 ?

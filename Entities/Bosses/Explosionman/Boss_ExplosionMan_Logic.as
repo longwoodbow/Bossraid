@@ -53,7 +53,7 @@ void onTick(CBlob@ this)
 			{
 				actionTimer = 0;
 
-				u8 random = XORRandom(5);
+				u8 random = 0;//XORRandom(5);
 				switch (random)
 				{
 					case 0:
@@ -205,6 +205,7 @@ void onTick(CBlob@ this)
 				//set state
 				actionTimer = 0;
 				state = ExplosionManStates::cluster;
+				explosionman.clusterHolder.clear();
 
 				if (!isClient())//not localhost
 				{
