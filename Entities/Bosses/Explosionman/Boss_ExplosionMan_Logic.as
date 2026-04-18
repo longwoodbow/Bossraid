@@ -53,7 +53,7 @@ void onTick(CBlob@ this)
 			{
 				actionTimer = 0;
 
-				u8 random = 0;//XORRandom(5);
+				u8 random = XORRandom(5);
 				switch (random)
 				{
 					case 0:
