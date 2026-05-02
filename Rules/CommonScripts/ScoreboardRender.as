@@ -753,7 +753,7 @@ void drawHoverExplanation(int hovered_accolade, int hovered_age, int hovered_tie
 	//added here
 	string desc = hovered_boss_accolade ?
 		(
-			(name == "LorderPlay") ? "Contributor" :
+			(name == "LorderPlay") ? "Contributor\nContributor Icon" :
 			"Contributor\nGreen Man: Ideas, Scripts & Sprites\nExplosion Man: Ideas, Scripts & Sprites"
 		) :
 		getTranslatedString(
